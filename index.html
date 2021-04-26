@@ -29,29 +29,31 @@
             border: 1px solid #f0f0f0;
             background: white;
             color: white;
-            box-shadow: 5px 5px 5px #f0f0f0;
             position: relative;
             transform-style: preserve-3d;
             transform: rotate3d(0, 1, 0, 180deg);
             transition: all 220ms;
+            /* border-radius */
+            -webkit-border-radius: 20px;
+            -moz-border-radius: 20px;
+            /* box-shadow */
+            -webkit-box-shadow: rgba(0,0,0,0.5) 0px 0 10px;
+            -moz-box-shadow: rgba(0,0,0,0.5) 0 0 10px;
+            box-shadow: rgba(0,0,0,0.5) 0 0 10px;
         }
-        .card .blank{
+        .card >div{
+            -webkit-border-radius: 20px;
+            -moz-border-radius: 20px;
             position: absolute;
             z-index: 1;
             width: 100%;
             height: 100%;
             background: white;
-            transform: translateZ(-1px);
         }
         .card .img-box{
-            position: absolute;
-            z-index: 1;
-            width: 100%;
-            height: 100%;
             display: flex;
             align-items: center;
             justify-content: center;
-            background: white;
             transform: translateZ(1px);
         }
         .card img{
@@ -96,16 +98,11 @@
     }]
 
     function onCardClick(index){
-        if (lock){
-            return
-        }else {
-            lock = true
-        }
         const card = cardList[index]
-        if (card.status==='matched'){
-            lock = false
+        if (lock || card.status==='matched'){
             return
         }
+        lock = true
         card.status = card.status==='show'?'hidden':'show'
         setTimeout(()=>{
             const showCards = cardList.filter(card => card.status==='show')
@@ -123,9 +120,11 @@
     function render(){
         cardList.forEach((card,index) =>{
             const $card = $cards.children().eq(index)
-            $card.removeClass("show")
-            $card.removeClass("hidden")
-            $card.addClass(card.status)
+            if(card.status==='hidden'){
+                $card.removeClass("show")
+            }else {
+                $card.addClass(card.status)
+            }
         })
     }
 
@@ -152,7 +151,7 @@
         let html = ''
         cardList.forEach((card,index) =>{
             html+=
-            `<div onclick="onCardClick(${index})" data-index="${index}" class="card ${card.status}">
+            `<div onclick="onCardClick(${index})" data-index="${index}" class="card">
                 <div class="blank"></div>
                 <div class="img-box">
                     <img src="imgs/${card.name}.jpg">
