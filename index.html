@@ -8,15 +8,17 @@
             integrity="sha256-/xUj+3OJU5yExlq6GSYGSHk7tPXikynS7ogEvDej/m4="
             crossorigin="anonymous"></script>
     <style>
-        *{
+        * {
             box-sizing: border-box;
         }
-        html,body{
+
+        html, body {
             margin: 0;
             height: 100%;
             width: 100%;
         }
-        .cards{
+
+        .cards {
             display: grid;
             grid-row-gap: 20px;
             grid-column-gap: 20px;
@@ -24,7 +26,8 @@
             width: 100%;
             padding: 20px;
         }
-        .card{
+
+        .card {
             border-radius: 20px;
             border: 1px solid #f0f0f0;
             background: white;
@@ -37,11 +40,12 @@
             -webkit-border-radius: 20px;
             -moz-border-radius: 20px;
             /* box-shadow */
-            -webkit-box-shadow: rgba(0,0,0,0.5) 0px 0 10px;
-            -moz-box-shadow: rgba(0,0,0,0.5) 0 0 10px;
-            box-shadow: rgba(0,0,0,0.5) 0 0 10px;
+            -webkit-box-shadow: rgba(0, 0, 0, 0.5) 0px 0 10px;
+            -moz-box-shadow: rgba(0, 0, 0, 0.5) 0 0 10px;
+            box-shadow: rgba(0, 0, 0, 0.5) 0 0 10px;
         }
-        .card >div{
+
+        .card > div {
             -webkit-border-radius: 20px;
             -moz-border-radius: 20px;
             position: absolute;
@@ -50,20 +54,24 @@
             height: 100%;
             background: white;
         }
-        .card .img-box{
+
+        .card .img-box {
             display: flex;
             align-items: center;
             justify-content: center;
             transform: translateZ(1px);
         }
-        .card img{
+
+        .card img {
             width: 50%;
             height: auto;
         }
-        .matched{
+
+        .matched {
             opacity: 0;
         }
-        .show{
+
+        .show {
             transform: rotate3d(0, 1, 0, 0deg);
         }
     </style>
@@ -77,90 +85,104 @@
 <script>
     const row = 5;
     const column = 8
-    const cardNums = row*column
+    const cardNums = row * column
     const cardList = []
     const FPS = 60
     let timer = null
     let lock = false
     const $cards = $("#cards")
-    const cardTypes = [{
-        name:'牛'
-    },{
-        name:'老虎'
-    },{
-        name:'老鼠'
-    },{
-        name:'马'
-    },{
-        name:'鸡'
-    },{
-        name:'龙'
-    }]
+    const cardTypes = [
+        {
+            name: '鼠'
+        },{
+            name: '牛'
+        }, {
+            name: '虎'
+        }, {
+            name: '兔'
+        }, {
+            name: '龙'
+        }, {
+            name: '蛇'
+        }, {
+            name: '马'
+        },{
+            name: '羊'
+        },{
+            name: '猴'
+        },{
+            name: '鸡'
+        },{
+            name: '狗'
+        },{
+            name: '猪'
+        },]
 
-    function onCardClick(index){
+    function onCardClick(index) {
         const card = cardList[index]
-        if (lock || card.status==='matched'){
+        if (lock || card.status === 'matched') {
             return
         }
         lock = true
-        card.status = card.status==='show'?'hidden':'show'
-        setTimeout(()=>{
-            const showCards = cardList.filter(card => card.status==='show')
-            if (showCards.length===2){
-                if (showCards[0].name===showCards[1].name){
+        card.status = card.status === 'show' ? 'hidden' : 'show'
+        setTimeout(() => {
+            const showCards = cardList.filter(card => card.status === 'show')
+            if (showCards.length === 2) {
+                if (showCards[0].name === showCards[1].name) {
                     showCards[1].status = showCards[0].status = 'matched'
-                }else {
+                } else {
                     cardList.forEach(card => card.status = 'hidden')
                 }
             }
             lock = false
-        },500)
+        }, 500)
     }
 
-    function render(){
-        cardList.forEach((card,index) =>{
+    function render() {
+        cardList.forEach((card, index) => {
             const $card = $cards.children().eq(index)
-            if(card.status==='hidden'){
+            if (card.status === 'hidden') {
                 $card.removeClass("show")
-            }else {
+            } else {
                 $card.addClass(card.status)
             }
         })
     }
 
-    function setRandomPosition(item){
-        let position = Math.floor(Math.random()*cardNums)
-        while (cardList[position%cardNums]){
+    function setRandomPosition(item) {
+        let position = Math.floor(Math.random() * cardNums)
+        while (cardList[position % cardNums]) {
             position++
         }
-        cardList[position%cardNums] = item
+        cardList[position % cardNums] = item
     }
 
-    function init(){
-        for (let i = 0;i<cardNums/2;i++){
+    function init() {
+        for (let i = 0; i < cardNums / 2; i++) {
             let newCard = {
-                status:'hidden'
+                status: 'hidden'
             }
-            newCard = Object.assign(newCard,cardTypes[Math.floor(Math.random()*cardTypes.length)])
+            newCard = Object.assign(newCard, cardTypes[Math.floor(Math.random() * cardTypes.length)])
             setRandomPosition(newCard)
             setRandomPosition(JSON.parse(JSON.stringify(newCard)))
         }
-        $cards.css('grid-template-rows',`repeat(${row}, auto)`)
-        $cards.css('grid-template-columns',`repeat(${column}, auto)`)
+        $cards.css('grid-template-rows', `repeat(${row}, auto)`)
+        $cards.css('grid-template-columns', `repeat(${column}, auto)`)
 
         let html = ''
-        cardList.forEach((card,index) =>{
-            html+=
-            `<div onclick="onCardClick(${index})" data-index="${index}" class="card">
+        cardList.forEach((card, index) => {
+            html +=
+                `<div onclick="onCardClick(${index})" data-index="${index}" class="card">
                 <div class="blank"></div>
                 <div class="img-box">
-                    <img src="imgs/${card.name}.jpg">
+                    <img src="imgs/${card.name}.png">
                 </div>
             </div>`
         })
         $cards.html(html)
-        timer = setInterval(render,1000/FPS)
+        timer = setInterval(render, 1000 / FPS)
     }
+
     init()
 </script>
 </body>
