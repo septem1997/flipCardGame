@@ -16,7 +16,7 @@ class CardManager{
             let newCard = {
                 status: 'hidden'
             }
-            newCard = Object.assign(newCard, this.cardGroup[i])
+            newCard = Object.assign(newCard, this.cardGroup[i%this.cardGroup.length])
             this.setRandomPosition(cardList,newCard)
             this.setRandomPosition(cardList,JSON.parse(JSON.stringify(newCard)))
         }
