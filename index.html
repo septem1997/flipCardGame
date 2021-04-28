@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>翻牌游戏</title>
+    <title>生肖消消乐</title>
     <script
             src="https://code.jquery.com/jquery-3.6.0.min.js"
             integrity="sha256-/xUj+3OJU5yExlq6GSYGSHk7tPXikynS7ogEvDej/m4="
@@ -18,6 +18,10 @@
             height: 100%;
             width: 100%;
         }
+        body{
+            display: flex;
+            flex-direction: column;
+        }
 
         .cards {
             display: grid;
@@ -26,6 +30,8 @@
             height: 100%;
             width: 100%;
             padding: 20px;
+            flex: 1;
+            border: 1px solid #f0f0f0;
         }
 
         .card {
@@ -41,9 +47,9 @@
             -webkit-border-radius: 20px;
             -moz-border-radius: 20px;
             /* box-shadow */
-            -webkit-box-shadow: rgba(0, 0, 0, 0.5) 0px 0 10px;
-            -moz-box-shadow: rgba(0, 0, 0, 0.5) 0 0 10px;
-            box-shadow: rgba(0, 0, 0, 0.5) 0 0 10px;
+            /*-webkit-box-shadow: rgba(0, 0, 0, 0.5) 0px 0 10px;*/
+            /*-moz-box-shadow: rgba(0, 0, 0, 0.5) 0 0 10px;*/
+            box-shadow: rgba(0, 0, 0, 0.2) 0 0 10px;
         }
 
         .card > div {
@@ -64,8 +70,8 @@
         }
 
         .card img {
-            width: 50%;
-            height: auto;
+            width: auto;
+            height: 75%;
         }
 
         .matched {
@@ -75,23 +81,117 @@
         .show {
             transform: rotate3d(0, 1, 0, 0deg);
         }
+        #gameStart{
+            position: fixed;
+            left: 0;
+            right: 0;
+            top: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.2);
+        }
+        #gameStart .menu{
+            position: absolute;
+            background: white;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            width: 480px;
+            height: 480px;
+            left: 0;
+            right: 0;
+            top: 0;
+            bottom: 0;
+            margin: auto;
+            border: 1px solid #f0f0f0;
+            box-shadow: rgba(0, 0, 0, 0.24) 5px 5px 12px;
+            -webkit-border-radius: 20px;
+            -moz-border-radius: 20px;
+        }
+        #gameStart button{
+            font-size: 48px;
+            margin-bottom: 24px;
+        }
+        .footer{
+            height: 120px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        .progress{
+            width: 100%;
+            height: 40px;
+            border-radius: 20px;
+            background: white;
+            border: 1px solid gray;
+            position: relative;
+            overflow: hidden;
+        }
+        .progress .fill{
+            position: absolute;
+            width: 100%;
+            background: red;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+        }
+        .info{
+            width: 120px;
+            padding: 10px;
+        }
+        .container{
+            display: flex;
+            flex: 1;
+        }
+        .score{
+            font-size: 48px;
+            font-weight: bold;
+            color: red;
+        }
     </style>
 </head>
 <body>
+<div class="header"></div>
+<div class="container">
+    <div id="p1Info" class="info">
+        玩家1分数：<br><span class="score">0</span>
+    </div>
+    <div class="cards" id="cards"></div>
+    <div id="p2Info" style="display: none" class="info"></div>
+</div>
+<div class="footer">
+    <div class="progress">
+        <div class="fill"></div>
+    </div>
+</div>
 
-<div class="cards" id="cards"></div>
-
+<div id="gameStart">
+    <div class="menu">
+        <button id="singleMode">
+            单人模式
+        </button>
+        <button id="coupleMode">
+            双人模式
+        </button>
+    </div>
+</div>
 
 <script>
+    let showMenu = true
     const row = 5;
     const column = 8
     const cardNums = row * column
     const cardList = []
     const FPS = 30
+    let score = 0
+    const maxTime = 60
+    let startTime = null
     let timer = null
-    let lock = false
+    let lockInput = false
     const $cards = $("#cards")
-    const cardTypes = [
+    const cardGroup = [
         {
             name: '鼠'
         }, {
@@ -120,41 +220,28 @@
 
     function onCardClick(index) {
         const card = cardList[index]
-        if (lock || card.status === 'matched') {
+        if (lockInput || card.status === 'matched') {
             return
         }
-        lock = true
+        lockInput = true
         card.status = card.status === 'show' ? 'hidden' : 'show'
+
+        const showCards = cardList.filter(card => card.status === 'show')
         setTimeout(() => {
-            const showCards = cardList.filter(card => card.status === 'show')
             if (showCards.length === 2) {
                 if (showCards[0].name === showCards[1].name) {
                     showCards[1].status = showCards[0].status = 'matched'
+                    score++
                 } else {
                     cardList.forEach(card => card.status = 'hidden')
                 }
             }
-            lock = false
+            lockInput = false
         }, 500)
     }
 
-    function render() {
-        if ($cards.html() === '') {
-            $cards.css('grid-template-rows', `repeat(${row}, auto)`)
-            $cards.css('grid-template-columns', `repeat(${column}, auto)`)
-            let html = ''
-            cardList.forEach((card, index) => {
-                html +=
-                    `<div onclick="onCardClick(${index})" data-index="${index}" class="card">
-                        <div class="blank"></div>
-                        <div class="img-box">
-                            <img src="imgs/${card.name}.png">
-                        </div>
-                    </div>`
-            })
-            $cards.html(html)
-        }
 
+    function renderCards() {
         cardList.forEach((card, index) => {
             const $card = $cards.children().eq(index)
             if (card.status === 'hidden') {
@@ -173,20 +260,83 @@
         cardList[position % cardNums] = item
     }
 
-    function init() {
+    function main(){
+
+        $("#singleMode").click(function (){
+            startGame()
+        })
+
+        $("#coupleMode").click(function (){
+            alert('敬请期待')
+        })
+
+        timer = setInterval(render, 1000 / FPS)
+
+    }
+
+    function startGame(){
+        showMenu = false
+        startTime = new Date().getTime()
+        initCards()
+    }
+
+    function renderScore() {
+        $('.score').html(score)
+    }
+
+    function renderProgress() {
+        if (startTime){
+            const now = new Date().getTime()
+            const dis = now - startTime
+            const time = maxTime * 1000
+            if (dis > time){
+                startTime = null
+                $('.fill').css('width',`0%`)
+                alert('游戏结束')
+            }else {
+                $('.fill').css('width',`${(1 - (dis/time))*100}%`)
+            }
+
+        }
+    }
+
+    function render() {
+        if (showMenu){
+            $("#gameStart").show()
+        }else {
+            $("#gameStart").hide()
+        }
+        renderCards()
+        renderScore()
+        renderProgress()
+    }
+
+    function initCards() {
         for (let i = 0; i < cardNums / 2; i++) {
             let newCard = {
                 status: 'hidden'
             }
-            newCard = Object.assign(newCard, cardTypes[Math.floor(Math.random() * cardTypes.length)])
+            newCard = Object.assign(newCard, cardGroup[Math.floor(Math.random() * cardGroup.length)])
             setRandomPosition(newCard)
             setRandomPosition(JSON.parse(JSON.stringify(newCard)))
+            $cards.css('grid-template-rows', `repeat(${row}, auto)`)
+            $cards.css('grid-template-columns', `repeat(${column}, auto)`)
+            let html = ''
+            cardList.forEach((card, index) => {
+                html +=
+                    `<div onclick="onCardClick(${index})" data-index="${index}" class="card">
+                        <div class="blank"></div>
+                        <div class="img-box">
+                            <img src="imgs/${card.name}.png">
+                        </div>
+                    </div>`
+            })
+            $cards.html(html)
         }
 
-        timer = setInterval(render, 1000 / FPS)
     }
 
-    init()
+    main()
 </script>
 </body>
 </html>
