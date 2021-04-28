@@ -151,6 +151,7 @@
             color: red;
         }
     </style>
+    <script src="cardManager.js"></script>
 </head>
 <body>
 <div class="header"></div>
@@ -179,11 +180,10 @@
 </div>
 
 <script>
-    let showMenu = true
     const row = 5;
     const column = 8;
-    const cardListLength = row * column
-    let cardList = []
+    let showMenu = true
+    let cardList = null
     const FPS = 30
     let score = 0
     const maxTime = 60
@@ -191,84 +191,20 @@
     let timer = null
     let lockInput = false
     const $cards = $("#cards")
-    const cardGroup = [
-        {
-            name: '鼠'
-        }, {
-            name: '牛'
-        }, {
-            name: '虎'
-        }, {
-            name: '兔'
-        }, {
-            name: '龙'
-        }, {
-            name: '蛇'
-        }, {
-            name: '马'
-        }, {
-            name: '羊'
-        }, {
-            name: '猴'
-        }, {
-            name: '鸡'
-        }, {
-            name: '狗'
-        }, {
-            name: '猪'
-        },]
 
-    function onCardClick(index) {
-        const card = cardList[index]
-        if (lockInput || card.status === 'matched') {
-            return
-        }
-        lockInput = true
-        card.status = card.status === 'show' ? 'hidden' : 'show'
-
-        const showCards = cardList.filter(card => card.status === 'show')
-        setTimeout(() => {
-            if (showCards.length === 2) {
-                if (showCards[0].name === showCards[1].name) {
-                    showCards[1].status = showCards[0].status = 'matched'
-                    score++
-                } else {
-                    cardList.forEach(card => card.status = 'hidden')
-                }
-            }
-            lockInput = false
-        }, 500)
-    }
-
-
-
-    function setRandomPosition(item) {
-        let position = Math.floor(Math.random() * cardListLength)
-        while (cardList[position % cardListLength]) {
-            position++
-        }
-        cardList[position % cardListLength] = item
-    }
-
-    function main(){
-
-        $("#singleMode").click(function (){
-            startGame()
-        })
-
-        $("#coupleMode").click(function (){
-            alert('敬请期待')
-        })
-
-        timer = setInterval(render, 1000 / FPS)
-
-    }
 
     function startGame(){
         showMenu = false
         score = 0
         initCards()
         startTime = new Date().getTime()
+    }
+
+
+    function endGame(){
+        alert('游戏结束')
+        showMenu = true
+        startTime = null
     }
 
     function renderScore() {
@@ -300,16 +236,11 @@
                 $card.addClass(card.status)
             }
         })
-        if (matchedNum===cardListLength){
+        if (matchedNum===cardList.length){
             endGame()
         }
     }
 
-    function endGame(){
-        alert('游戏结束')
-        showMenu = true
-        startTime = null
-    }
 
     function render() {
         if (showMenu){
@@ -326,28 +257,56 @@
     }
 
     function initCards() {
-        cardList = []
-        for (let i = 0; i < cardListLength / 2; i++) {
-            let newCard = {
-                status: 'hidden'
-            }
-            newCard = Object.assign(newCard, cardGroup[Math.floor(Math.random() * cardGroup.length)])
-            setRandomPosition(newCard)
-            setRandomPosition(JSON.parse(JSON.stringify(newCard)))
-            $cards.css('grid-template-rows', `repeat(${row}, auto)`)
-            $cards.css('grid-template-columns', `repeat(${column}, auto)`)
-            let html = ''
-            cardList.forEach((card, index) => {
-                html +=
-                    `<div onclick="onCardClick(${index})" data-index="${index}" class="card">
+        cardList = CardManager.createCardList(row,column)
+        $cards.css('grid-template-rows', `repeat(${row}, auto)`)
+        $cards.css('grid-template-columns', `repeat(${column}, auto)`)
+        let html = ''
+        cardList.forEach((card, index) => {
+            html +=
+                `<div data-index="${index}" class="card">
                         <div class="blank"></div>
                         <div class="img-box">
                             <img src="imgs/${card.name}.png">
                         </div>
                     </div>`
-            })
-            $cards.html(html)
-        }
+        })
+        $cards.html(html)
+        $('.card').click(function (){
+            const index = $(this).data('index')
+            const card = cardList[index]
+            if (lockInput || card.status === 'matched') {
+                return
+            }
+            lockInput = true
+            card.status = card.status === 'show' ? 'hidden' : 'show'
+
+            const showCards = cardList.filter(card => card.status === 'show')
+            setTimeout(() => {
+                if (showCards.length === 2) {
+                    if (showCards[0].name === showCards[1].name) {
+                        showCards[1].status = showCards[0].status = 'matched'
+                        score++
+                    } else {
+                        cardList.forEach(card => card.status = 'hidden')
+                    }
+                }
+                lockInput = false
+            }, 500)
+        })
+    }
+
+
+    function main(){
+
+        $("#singleMode").click(function (){
+            startGame()
+        })
+
+        $("#coupleMode").click(function (){
+            alert('敬请期待')
+        })
+
+        timer = setInterval(render, 1000 / FPS)
 
     }
 
