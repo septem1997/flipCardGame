@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>翻拍小游戏</title>
+    <title>翻牌游戏</title>
     <script
             src="https://code.jquery.com/jquery-3.6.0.min.js"
             integrity="sha256-/xUj+3OJU5yExlq6GSYGSHk7tPXikynS7ogEvDej/m4="
@@ -10,6 +10,7 @@
     <style>
         * {
             box-sizing: border-box;
+            user-select: none;
         }
 
         html, body {
@@ -78,8 +79,7 @@
 </head>
 <body>
 
-<div class="cards" id="cards">
-</div>
+<div class="cards" id="cards"></div>
 
 
 <script>
@@ -87,14 +87,14 @@
     const column = 8
     const cardNums = row * column
     const cardList = []
-    const FPS = 60
+    const FPS = 30
     let timer = null
     let lock = false
     const $cards = $("#cards")
     const cardTypes = [
         {
             name: '鼠'
-        },{
+        }, {
             name: '牛'
         }, {
             name: '虎'
@@ -106,15 +106,15 @@
             name: '蛇'
         }, {
             name: '马'
-        },{
+        }, {
             name: '羊'
-        },{
+        }, {
             name: '猴'
-        },{
+        }, {
             name: '鸡'
-        },{
+        }, {
             name: '狗'
-        },{
+        }, {
             name: '猪'
         },]
 
@@ -139,6 +139,22 @@
     }
 
     function render() {
+        if ($cards.html() === '') {
+            $cards.css('grid-template-rows', `repeat(${row}, auto)`)
+            $cards.css('grid-template-columns', `repeat(${column}, auto)`)
+            let html = ''
+            cardList.forEach((card, index) => {
+                html +=
+                    `<div onclick="onCardClick(${index})" data-index="${index}" class="card">
+                        <div class="blank"></div>
+                        <div class="img-box">
+                            <img src="imgs/${card.name}.png">
+                        </div>
+                    </div>`
+            })
+            $cards.html(html)
+        }
+
         cardList.forEach((card, index) => {
             const $card = $cards.children().eq(index)
             if (card.status === 'hidden') {
@@ -166,20 +182,7 @@
             setRandomPosition(newCard)
             setRandomPosition(JSON.parse(JSON.stringify(newCard)))
         }
-        $cards.css('grid-template-rows', `repeat(${row}, auto)`)
-        $cards.css('grid-template-columns', `repeat(${column}, auto)`)
 
-        let html = ''
-        cardList.forEach((card, index) => {
-            html +=
-                `<div onclick="onCardClick(${index})" data-index="${index}" class="card">
-                <div class="blank"></div>
-                <div class="img-box">
-                    <img src="imgs/${card.name}.png">
-                </div>
-            </div>`
-        })
-        $cards.html(html)
         timer = setInterval(render, 1000 / FPS)
     }
 
