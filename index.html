@@ -181,9 +181,9 @@
 <script>
     let showMenu = true
     const row = 5;
-    const column = 8
-    const cardNums = row * column
-    const cardList = []
+    const column = 8;
+    const cardListLength = row * column
+    let cardList = []
     const FPS = 30
     let score = 0
     const maxTime = 60
@@ -241,23 +241,13 @@
     }
 
 
-    function renderCards() {
-        cardList.forEach((card, index) => {
-            const $card = $cards.children().eq(index)
-            if (card.status === 'hidden') {
-                $card.removeClass("show")
-            } else {
-                $card.addClass(card.status)
-            }
-        })
-    }
 
     function setRandomPosition(item) {
-        let position = Math.floor(Math.random() * cardNums)
-        while (cardList[position % cardNums]) {
+        let position = Math.floor(Math.random() * cardListLength)
+        while (cardList[position % cardListLength]) {
             position++
         }
-        cardList[position % cardNums] = item
+        cardList[position % cardListLength] = item
     }
 
     function main(){
@@ -276,8 +266,9 @@
 
     function startGame(){
         showMenu = false
-        startTime = new Date().getTime()
+        score = 0
         initCards()
+        startTime = new Date().getTime()
     }
 
     function renderScore() {
@@ -285,19 +276,39 @@
     }
 
     function renderProgress() {
-        if (startTime){
-            const now = new Date().getTime()
-            const dis = now - startTime
-            const time = maxTime * 1000
-            if (dis > time){
-                startTime = null
-                $('.fill').css('width',`0%`)
-                alert('游戏结束')
-            }else {
-                $('.fill').css('width',`${(1 - (dis/time))*100}%`)
-            }
-
+        const now = new Date().getTime()
+        const dis = now - startTime
+        const time = maxTime * 1000
+        if (dis > time){
+            $('.fill').css('width',`0%`)
+            endGame()
+        }else {
+            $('.fill').css('width',`${(1 - (dis/time))*100}%`)
         }
+    }
+
+    function renderCards() {
+        let matchedNum = 0
+        cardList.forEach((card, index) => {
+            if (card.status==="matched"){
+                matchedNum++
+            }
+            const $card = $cards.children().eq(index)
+            if (card.status === 'hidden') {
+                $card.removeClass("show")
+            } else {
+                $card.addClass(card.status)
+            }
+        })
+        if (matchedNum===cardListLength){
+            endGame()
+        }
+    }
+
+    function endGame(){
+        alert('游戏结束')
+        showMenu = true
+        startTime = null
     }
 
     function render() {
@@ -306,13 +317,17 @@
         }else {
             $("#gameStart").hide()
         }
-        renderCards()
+        if (!startTime){
+            return
+        }
         renderScore()
         renderProgress()
+        renderCards()
     }
 
     function initCards() {
-        for (let i = 0; i < cardNums / 2; i++) {
+        cardList = []
+        for (let i = 0; i < cardListLength / 2; i++) {
             let newCard = {
                 status: 'hidden'
             }
